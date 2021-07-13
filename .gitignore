@@ -1,3 +1,4 @@
 env.sh
 *json*
 *fn*
+__pycache__
