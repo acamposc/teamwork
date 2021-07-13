@@ -2,18 +2,16 @@ from flask import Flask
 import requests
 import os
 import json
-from google.cloud import storage
+from fn import fn
 
 
 TW_KEY = os.environ.get('TW_API_KEY')
 TW_URL = os.environ.get('TW_API_URL')
 
 '''
-Cloud Storage Env vars.
+- STORAGE_BUCKET_NAME abstracted for protection.
 '''
-GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 STORAGE_BUCKET_NAME = os.environ.get('STORAGE_BUCKET_NAME')
-bucket_name = STORAGE_BUCKET_NAME
 
 app = Flask(__name__)
 
@@ -28,39 +26,29 @@ def starred():
     resp = requests.get(url, auth=(TW_KEY,"d"))
     starred = resp.content
     starred = starred.decode()
-    with open('starred.json', 'w') as outfile:
+    
+    
+    '''
+    creates json file at root directory.
+    '''
+    file_path = 'starred.json'
+    with open(file_path, 'w') as outfile:
         json.dump(starred, outfile)
     
 
     '''
-    initiallize cloud storage
+    calls function from directory fn
     '''
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    '''
-    Upload files to bucket in Storage.
-    '''
-    def upload(blob_name,file_path,bucket_name):
-        try:
-            bucket = storage_client.get_bucket(bucket_name)
-            blob = bucket.blob(blob_name)
-            blob.upload_from_filename(file_path)
-            return True
-        
-        except Exception as e:
-            print(e)
-            return False
-
-    file_path = 'starred.json'
-    upload(
-        blob_name = 'test',
+    fn.upload(
+        blob_name = file_path,
         file_path = file_path,
-        bucket_name = bucket
-
+        bucket_name = STORAGE_BUCKET_NAME
     )
 
 
 
-
+    '''
+    confirmation screen could improve.
+    '''
     return('200')
     
